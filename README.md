@@ -11,16 +11,17 @@ LSTMs are a type of neural network architecture well-suited for handling sequent
 Setting Up the Environment
 1. Clone the Repository:
 
-git clone https://github.com/<your-username>/Crypto-Price-Predictor-Python.git
+`git clone https://github.com/<your-username>/Crypto-Price-Predictor-Python.git`
 
 2. Create and Activate the Virtual Environment:
 
-cd Crypto-Price-Predictor-Python
+`cd Crypto-Price-Predictor-Python`
 
 For Windows:
 
-python -m venv venv
-venv\Scripts\activate
+`python -m venv venv`
+
+`venv\Scripts\activate`
 
 
 3. Installing Required Libraries:
@@ -29,16 +30,16 @@ pip install tensorflow pandas numpy requests matplotlib scikit-learn yfinance
 
 4. Running the Script:
 
-python CryptoPricePredictor.py
+`python CryptoPricePredictor.py`
 
 5. Deactivating the Virtual Environment:
 
-deactivate
+`deactivate`
 
 6. Switching Between Cryptos:
 Currently, the script is set to track Bitcoin (BTC). To track a different cryptocurrency, modify the following line in the CryptoPricePredictor.py:
 
-symbol = 'BTCUSDT'
+`symbol = 'BTCUSDT'`
 
 Change 'BTCUSDT' to the symbol of the cryptocurrency you want to track. For example:
 
@@ -58,4 +59,4 @@ XRP: 'XRPUSDT'
 If you encounter any issues with the TensorFlow or Keras imports (due to Pylance warnings), don’t worry as long as the script runs correctly. These warnings are often related to the VS Code environment settings.
 If the script takes too long or encounters an issue during training, try reducing the dataset size by modifying the number of days of historical data in the function:
 
-get_historical_prices(symbol='BTCUSDT', days=60)
+`get_historical_prices(symbol='BTCUSDT', days=60)`
