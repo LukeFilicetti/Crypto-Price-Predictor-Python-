@@ -8,7 +8,7 @@ Visualizes price trends and predicts future values.
 LSTMs are a type of neural network architecture well-suited for handling sequential data, which makes them a great choice for time series data like stock or cryptocurrency prices.
 
 # Crypto Price Predictor Setup and Usage Guide
-Setting Up the Environment
+**Setting Up the Environment**
 1. Clone the Repository:
 
 `git clone https://github.com/<your-username>/Crypto-Price-Predictor-Python.git`
@@ -17,7 +17,7 @@ Setting Up the Environment
 
 `cd Crypto-Price-Predictor-Python`
 
-For Windows:
+**For Windows:**
 
 `python -m venv venv`
 
