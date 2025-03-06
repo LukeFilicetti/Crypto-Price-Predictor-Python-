@@ -1,3 +1,13 @@
+# 
+# Author: Luke Filicetti
+# Description: 
+# This program predicts the price of Bitcoin using a Long Short-Term Memory (LSTM) model. 
+# It fetches historical data from the Binance API using the 'yfinance' library, processes the data, 
+# and trains an LSTM model to predict future prices. The results are then plotted using matplotlib. 
+# The model is capable of predicting the price for a few days into the future based on historical data.
+#
+
+# Import necessary libraries
 import pandas as pd
 import numpy as np
 import requests
