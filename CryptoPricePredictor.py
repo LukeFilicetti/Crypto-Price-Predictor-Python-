@@ -8,26 +8,26 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime, timedelta
 
-# Fetch historical crypto prices from Binance API
-def get_historical_prices(symbol="BTCUSDT", days=60):
-    url = "https://api.binance.com/api/v3/klines"
-    params = {"symbol": symbol, "interval": "1d", "limit": days}
+# Fetch historical crypto prices from CoinGecko API
+def get_historical_prices(days=60):
+    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+    params = {"vs_currency": "usd", "days": str(days)}
     response = requests.get(url, params=params)
 
     if response.status_code != 200:
-        print(f"Error fetching data from Binance API: {response.status_code}")
+        print(f"Error fetching data from CoinGecko API: {response.status_code}")
         return None
 
     data = response.json()
-    prices = [float(entry[4]) for entry in data]  # Closing prices
+    prices = [entry[1] for entry in data["prices"]]  # Extract closing prices
     dates = [datetime.now() - timedelta(days=i) for i in range(len(prices))]
     dates.reverse()  # Ensure chronological order
 
-    return pd.DataFrame({'Date': dates, 'Price': prices})
+    return pd.DataFrame({"Date": dates, "Price": prices})
 
 # Prepare data for LSTM training
 def prepare_lstm_data(df, time_steps=10):
-    scaler = MinMaxScaler(feature_range=(0,1))
+    scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(df[['Price']])
 
     X, y = [], []
@@ -43,57 +43,39 @@ def prepare_lstm_data(df, time_steps=10):
 # Build the LSTM model
 def build_lstm_model(input_shape):
     model = Sequential([
-        LSTM(units=50, return_sequences=True, input_shape=input_shape),
+        LSTM(50, return_sequences=True, input_shape=input_shape),
         Dropout(0.2),
-        LSTM(units=50, return_sequences=False),
+        LSTM(25, return_sequences=False),
         Dropout(0.2),
-        Dense(units=25),
-        Dense(units=1)  # Output layer
+        Dense(25),
+        Dense(1)  # Output layer
     ])
     
     model.compile(optimizer='adam', loss='mean_squared_error')
     return model
 
-# Train the model every time before making predictions
-def train_and_predict(symbol="BTCUSDT", time_steps=10, future_days=10):
-    # Fetch latest prices
-    df = get_historical_prices(symbol)
-    if df is None:
-        return
-    
-    # Prepare data
-    X_train, y_train, scaler = prepare_lstm_data(df, time_steps)
-    
-    # Build and train model
+# Main script
+df = get_historical_prices()
+if df is not None:
+    X_train, y_train, scaler = prepare_lstm_data(df)
+
+    # Build and train the LSTM model
     model = build_lstm_model((X_train.shape[1], 1))
-    model.fit(X_train, y_train, epochs=50, batch_size=16, verbose=1)
+    model.fit(X_train, y_train, epochs=10, batch_size=16, verbose=1)
 
     # Predict future prices
-    last_sequence = df['Price'].values[-time_steps:]
-    last_sequence_scaled = scaler.transform(last_sequence.reshape(-1, 1))
+    future_x = X_train[-1].reshape(1, X_train.shape[1], 1)
+    future_price = model.predict(future_x)
+    future_price = scaler.inverse_transform(future_price.reshape(-1, 1))
 
-    future_predictions = []
-    for _ in range(future_days):
-        X_input = np.array([last_sequence_scaled])
-        X_input = np.reshape(X_input, (X_input.shape[0], X_input.shape[1], 1))
-        
-        prediction = model.predict(X_input, verbose=0)[0, 0]
-        future_predictions.append(prediction)
-
-        last_sequence_scaled = np.append(last_sequence_scaled[1:], prediction).reshape(-1, 1)
-
-    future_prices = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1)).flatten()
+    print(f"Predicted next day's price: ${future_price[0][0]:.2f}")
 
     # Plot results
-    plt.figure(figsize=(10, 5))
-    plt.scatter(df['Date'], df['Price'], label="Historical Prices", color='blue')
-    future_dates = [df['Date'].max() + timedelta(days=i) for i in range(1, 11)]
-    plt.plot(future_dates, future_prices, label="Predicted Prices (LSTM)", color='red')
+    plt.figure(figsize=(10,5))
+    plt.plot(df['Date'], df['Price'], label="Historical Prices", color='blue')
+    plt.scatter([df['Date'].max() + timedelta(days=1)], [future_price[0][0]], label="Predicted Price", color='red')
     plt.legend()
     plt.xlabel("Date")
     plt.ylabel("Price (USD)")
-    plt.title(f"{symbol} Price Prediction (Binance + LSTM)")
+    plt.title("Bitcoin Price Prediction (LSTM)")
     plt.show()
-
-# Run prediction
-train_and_predict("BTCUSDT")  # Change to "ETHUSDT", "DOGEUSDT", etc.
